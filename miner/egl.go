@@ -21,11 +21,14 @@ type EglConfig struct {
 
 func (w *worker) eglLoop() {
 	eglConfig := &w.config.Egl
-	eglConfig.enableCh = make(chan bool)
+	eglConfig.enableCh = make(chan bool, 1)
 	eglConfig.enabled = false
 	eglConfig.baseGasCeil = w.config.GasCeil
 	eglConfig.baseGasFloor = w.config.GasFloor
 	log.Info("EGL Base Gas Values", "gasfloor", eglConfig.baseGasFloor, "gasceil", eglConfig.baseGasCeil)
+
+	// Enable by default
+	w.enableEgl()
 
 	if eglConfig.Address != "" {
 		time.Sleep(5 * time.Second)
