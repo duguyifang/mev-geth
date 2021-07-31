@@ -43,11 +43,10 @@ func (w *worker) eglLoop() {
 				if enabled {
 					go eglRunner(eglConfig, w.config, stopEgl)
 				} else {
-					log.Info("EGL Stopping EGL runner")
 					stopEgl <- true
 					w.config.GasFloor = eglConfig.baseGasFloor
 					w.config.GasCeil = eglConfig.baseGasCeil
-					log.Info("EGL Base Gas Limit Values Restored", "gasfloor", w.config.GasFloor, "gasceil", w.config.GasCeil)
+					log.Info("EGL Disabled. Base Gas Limit Values Restored", "gasfloor", w.config.GasFloor, "gasceil", w.config.GasCeil)
 				}
 			}
 		}
@@ -74,7 +73,7 @@ func eglRunner(eglConfig *EglConfig, workerConfig *Config, stopEgl chan bool) {
 	for {
 		select {
 		case <-stopEgl:
-			log.Info("EGL Runner Stopped")
+			log.Info("EGL Stopped")
 			return
 		default:
 			if eglConfig.enabled {
