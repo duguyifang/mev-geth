@@ -85,6 +85,20 @@ func (w *multiWorker) disablePreseal() {
 	}
 }
 
+func (w *multiWorker) enableEgl() {
+
+	for _, worker := range w.workers {
+		worker.enableEgl()
+	}
+}
+
+// DisableEgl disables following the desired EGL
+func (w *multiWorker) disableEgl() {
+	for _, worker := range w.workers {
+		worker.disableEgl()
+	}
+}
+
 func newMultiWorker(config *Config, chainConfig *params.ChainConfig, engine consensus.Engine, eth Backend, mux *event.TypeMux, isLocalBlock func(*types.Block) bool, init bool) *multiWorker {
 	queue := make(chan *task)
 
