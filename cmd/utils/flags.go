@@ -1362,6 +1362,16 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 	if ctx.GlobalIsSet(TxPoolLifetimeFlag.Name) {
 		cfg.Lifetime = ctx.GlobalDuration(TxPoolLifetimeFlag.Name)
 	}
+	if ctx.GlobalIsSet(MinerTrustedRelaysFlag.Name) {
+		addresses := strings.Split(ctx.GlobalString(MinerTrustedRelaysFlag.Name), ",")
+		for _, address := range addresses {
+			if trimmed := strings.TrimSpace(address); !common.IsHexAddress(trimmed) {
+				Fatalf("Invalid account in --miner.trustedrelays: %s", trimmed)
+			} else {
+				cfg.TrustedRelays = append(cfg.TrustedRelays, common.HexToAddress(trimmed))
+			}
+		}
+	}
 }
 
 func setEthash(ctx *cli.Context, cfg *ethconfig.Config) {

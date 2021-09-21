@@ -156,6 +156,8 @@ type TxPoolConfig struct {
 	GlobalQueue  uint64 // Maximum number of non-executable transaction slots for all accounts
 
 	Lifetime time.Duration // Maximum amount of time non-executable transaction are queued
+
+	TrustedRelays []common.Address // Trusted relay addresses. Duplicated from the miner config.
 }
 
 // DefaultTxPoolConfig contains the default configurations for the transaction
@@ -603,7 +605,16 @@ func (pool *TxPool) AddMegabundle(relayAddr common.Address, txs types.Transactio
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
 
-	// TODO(bogatyy): ideally we want to return an error on non-trusted addresses. Instead, they will be ignored.
+	fromTrustedRelay := false
+	for _, trustedAddr := range pool.config.TrustedRelays {
+		if relayAddr == trustedAddr {
+			fromTrustedRelay = true
+		}
+	}
+	if !fromTrustedRelay {
+		return errors.New("megabundle from non-trusted address")
+	}
+
 	pool.megabundles[relayAddr] = types.MevBundle{
 		Txs:               txs,
 		BlockNumber:       blockNumber,
