@@ -146,6 +146,16 @@ func (api *PrivateMinerAPI) SetRecommitInterval(interval int) {
 	api.e.Miner().SetRecommitInterval(time.Duration(interval) * time.Millisecond)
 }
 
+func (api *PrivateMinerAPI) EnableEgl() bool {
+	api.e.Miner().EnableEgl()
+	return true
+}
+
+func (api *PrivateMinerAPI) DisableEgl() bool {
+	api.e.Miner().DisableEgl()
+	return true
+}
+
 // PrivateAdminAPI is the collection of Ethereum full node-related APIs
 // exposed over the private admin endpoint.
 type PrivateAdminAPI struct {
