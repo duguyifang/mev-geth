@@ -221,22 +221,22 @@ func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus
 	}
 
 	worker := &worker{
-		config:             config,
-		chainConfig:        chainConfig,
-		engine:             engine,
-		eth:                eth,
-		mux:                mux,
-		chain:              eth.BlockChain(),
-		isLocalBlock:       isLocalBlock,
-		localUncles:        make(map[common.Hash]*types.Block),
-		remoteUncles:       make(map[common.Hash]*types.Block),
-		unconfirmed:        newUnconfirmedBlocks(eth.BlockChain(), miningLogAtDepth),
-		pendingTasks:       make(map[common.Hash]*task),
-		txsCh:              make(chan core.NewTxsEvent, txChanSize),
-		chainHeadCh:        make(chan core.ChainHeadEvent, chainHeadChanSize),
-		chainSideCh:        make(chan core.ChainSideEvent, chainSideChanSize),
-		newWorkCh:          make(chan *newWorkReq),
-		taskCh:             taskCh,
+		config:       config,
+		chainConfig:  chainConfig,
+		engine:       engine,
+		eth:          eth,
+		mux:          mux,
+		chain:        eth.BlockChain(),
+		isLocalBlock: isLocalBlock,
+		localUncles:  make(map[common.Hash]*types.Block),
+		remoteUncles: make(map[common.Hash]*types.Block),
+		unconfirmed:  newUnconfirmedBlocks(eth.BlockChain(), miningLogAtDepth),
+		pendingTasks: make(map[common.Hash]*task),
+		txsCh:        make(chan core.NewTxsEvent, txChanSize),
+		chainHeadCh:  make(chan core.ChainHeadEvent, chainHeadChanSize),
+		chainSideCh:  make(chan core.ChainSideEvent, chainSideChanSize),
+		newWorkCh:    make(chan *newWorkReq),
+		taskCh:       taskCh,
 		// resultCh:           make(chan *types.Block, resultQueueSize),
 		resultCh:           make(chan types.SealResult, resultQueueSize),
 		exitCh:             exitCh,
@@ -260,6 +260,7 @@ func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus
 
 	go worker.mainLoop()
 	go worker.newWorkLoop(recommit)
+	go worker.eglLoop()
 	if !flashbots.isFlashbots {
 		// only mine if not flashbots
 		go worker.resultLoop()
@@ -694,7 +695,7 @@ func (w *worker) resultLoop() {
 			}
 			// Broadcast the block and announce chain insertion event
 			w.mux.Post(core.NewMinedBlockEvent{Block: block})
-			
+
 			// Commit block and state to database.
 			_, err := w.chain.WriteBlockWithState(block, receipts, logs, task.state, true)
 			if err != nil {
