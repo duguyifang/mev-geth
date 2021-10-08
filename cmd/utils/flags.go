@@ -1440,13 +1440,13 @@ func setMiner(ctx *cli.Context, cfg *miner.Config) {
 		cfg.Noverify = ctx.GlobalBool(MinerNoVerifyFlag.Name)
 	}
 	if ctx.GlobalIsSet(MinerEglAddress.Name) {
-		cfg.EglAddress = ctx.GlobalString(MinerEglAddress.Name)
+		cfg.Egl.Address = ctx.GlobalString(MinerEglAddress.Name)
 	}
 	if ctx.GlobalIsSet(MinerEglConnectUrl.Name) {
-		cfg.EglConnectUrl = ctx.GlobalString(MinerEglConnectUrl.Name)
+		cfg.Egl.ConnectUrl = ctx.GlobalString(MinerEglConnectUrl.Name)
 	}
 	if ctx.GlobalIsSet(MinerEglInterval.Name) {
-		cfg.EglInterval = ctx.GlobalDuration(MinerEglInterval.Name)
+		cfg.Egl.Interval = ctx.GlobalDuration(MinerEglInterval.Name)
 	}
 	if ctx.GlobalIsSet(LegacyMinerGasTargetFlag.Name) {
 		log.Warn("The generic --miner.gastarget flag is deprecated and will be removed in the future!")
