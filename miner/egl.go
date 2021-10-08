@@ -9,35 +9,108 @@ import (
 	"time"
 )
 
+type EglConfig struct {
+	enableCh     chan bool     // Should following EGL
+	enabled      bool          // Should following EGL
+	baseGasFloor uint64        // Original gas floor value
+	baseGasCeil  uint64        // Original gas ceil value
+	Address      string        // Address of EGL smart contract.
+	ConnectUrl   string        // URL for the client to get desired EGL value from the contract.
+	Interval     time.Duration // How often to check EGL value.
+}
+
 func (w *worker) eglLoop() {
-	if w.config.EglAddress != "" {
-		// Sleep for 15 seconds to allow ipc to start
-		time.Sleep(15 * time.Second)
-		log.Info("EGL initialized", "address", w.config.EglAddress)
-		client, clientErr := ethclient.Dial(w.config.EglConnectUrl)
-		eglInstance, instanceErr := egl.NewEgl(common.HexToAddress(w.config.EglAddress), client)
+	eglConfig := &w.config.Egl
+	eglConfig.enableCh = make(chan bool)
+	eglConfig.enabled = false
+	eglConfig.baseGasCeil = w.config.GasCeil
+	eglConfig.baseGasFloor = w.config.GasFloor
+	log.Info("EGL Base Gas Values", "gasfloor", eglConfig.baseGasFloor, "gasceil", eglConfig.baseGasCeil)
 
-		if clientErr != nil {
-			log.Error("ETH client dial error", "message", clientErr, "url", w.config.EglConnectUrl)
-		}
+	if eglConfig.Address != "" {
+		time.Sleep(5 * time.Second)
+		log.Info("EGL initialized", "address", eglConfig.Address)
 
-		if instanceErr != nil {
-			log.Error("ETH contract instance error", "message", instanceErr, "egladdress", w.config.EglAddress)
-		}
+		stopEgl := make(chan bool, 1)
 		for {
-			rawDesiredEgl, contractReadErr := eglInstance.DesiredEgl(nil)
-			var desiredEgl, _ = new(big.Int).SetString(rawDesiredEgl.String(), 10)
-			w.config.GasFloor = desiredEgl.Uint64() / 2
-			w.config.GasCeil = desiredEgl.Uint64()
-			log.Info("EGL gas limit adjustment", "desiredegl", desiredEgl, "gastarget", w.config.GasFloor, "gaslimit", w.config.GasCeil)
-
-			if contractReadErr != nil {
-				log.Error("EGL contract read error", "message", contractReadErr)
+			select {
+			case enabled := <-eglConfig.enableCh:
+				eglConfig.enabled = enabled
+				log.Info("EGL Status", "enabled", enabled, "gasfloor", w.config.GasFloor, "gasceil", w.config.GasCeil)
+				if enabled {
+					go eglRunner(eglConfig, w.config, stopEgl)
+				} else {
+					log.Info("EGL Stopping EGL runner")
+					stopEgl <- true
+					w.config.GasFloor = eglConfig.baseGasFloor
+					w.config.GasCeil = eglConfig.baseGasCeil
+					log.Info("EGL Base Gas Limit Values Restored", "gasfloor", w.config.GasFloor, "gasceil", w.config.GasCeil)
+				}
 			}
-			time.Sleep(w.config.EglInterval)
 		}
 	} else {
-		log.Info("EGL not initialized", "reason", "No EGL contract address configured")
+		log.Warn("EGL not initialized", "reason", "No EGL contract address configured")
 		return
 	}
+}
+
+func eglRunner(eglConfig *EglConfig, workerConfig *Config, stopEgl chan bool) {
+	eglClient, eglClientErr := ethclient.Dial(eglConfig.ConnectUrl)
+	eglContractInstance, eglContractErr := egl.NewEgl(common.HexToAddress(eglConfig.Address), eglClient)
+
+	if eglClientErr != nil {
+		log.Error("ETH Client Dial Error", "message", eglClientErr, "url", eglConfig.ConnectUrl)
+		return
+	}
+
+	if eglContractErr != nil {
+		log.Error("ETH Contract Instance Error", "message", eglContractErr, "egladdress", eglConfig.Address)
+		return
+	}
+
+	for {
+		select {
+		case <-stopEgl:
+			log.Info("EGL Runner Stopped")
+			return
+		default:
+			if eglConfig.enabled {
+				desiredEgl := getDesiredEgl(eglContractInstance)
+				if desiredEgl != nil {
+					workerConfig.GasFloor = desiredEgl.Uint64() / 2
+					workerConfig.GasCeil = desiredEgl.Uint64()
+					log.Info("EGL adjusted gas limits", "desiredegl", desiredEgl, "gastarget", workerConfig.GasFloor, "gaslimit", workerConfig.GasCeil)
+				}
+				time.Sleep(eglConfig.Interval)
+			}
+		}
+	}
+}
+
+func getDesiredEgl(eglContract *egl.Egl) *big.Int {
+	rawDesiredEgl, contractReadErr := eglContract.DesiredEgl(nil)
+	if contractReadErr != nil {
+		log.Error("EGL contract read error", "message", contractReadErr)
+		return nil
+	}
+	var desiredEgl, _ = new(big.Int).SetString(rawDesiredEgl.String(), 10)
+	return desiredEgl
+}
+
+// enableEgl enables following desired EGL
+func (w *worker) enableEgl() {
+	if w.config.Egl.enabled {
+		log.Warn("EGL Already Enabled", "status", "ignoring...")
+		return
+	}
+	w.config.Egl.enableCh <- true
+}
+
+// disableEgl enables following desired EGL
+func (w *worker) disableEgl() {
+	if !w.config.Egl.enabled {
+		log.Warn("EGL Already Disabled", "status", "ignoring...")
+		return
+	}
+	w.config.Egl.enableCh <- false
 }
