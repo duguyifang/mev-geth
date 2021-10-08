@@ -51,6 +51,9 @@ type Config struct {
 	GasPrice         *big.Int       // Minimum gas price for mining a transaction
 	Recommit         time.Duration  // The time interval for miner to re-create mining work.
 	Noverify         bool           // Disable remote mining solution verification(only useful in ethash).
+	EglAddress       string         // Address of EGL smart contract.
+	EglConnectUrl    string         // URL for the client to get desired EGL value from the contract.
+	EglInterval      time.Duration  // How often to check EGL value.
 	MaxMergedBundles int
 	TrustedRelays    []common.Address `toml:",omitempty"` // Trusted relay addresses to receive tasks from.
 }
