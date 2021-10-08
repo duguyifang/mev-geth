@@ -644,6 +644,14 @@ web3._extend({
 			name: 'getHashrate',
 			call: 'miner_getHashrate'
 		}),
+		new web3._extend.Method({
+			name: 'enableEgl',
+			call: 'miner_enableEgl'
+		}),
+		new web3._extend.Method({
+			name: 'disableEgl',
+			call: 'miner_disableEgl'
+		}),
 	],
 	properties: []
 });

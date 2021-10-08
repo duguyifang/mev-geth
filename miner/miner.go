@@ -51,9 +51,7 @@ type Config struct {
 	GasPrice         *big.Int       // Minimum gas price for mining a transaction
 	Recommit         time.Duration  // The time interval for miner to re-create mining work.
 	Noverify         bool           // Disable remote mining solution verification(only useful in ethash).
-	EglAddress       string         // Address of EGL smart contract.
-	EglConnectUrl    string         // URL for the client to get desired EGL value from the contract.
-	EglInterval      time.Duration  // How often to check EGL value.
+	Egl              EglConfig      // Configuration for EGL
 	MaxMergedBundles int
 	TrustedRelays    []common.Address `toml:",omitempty"` // Trusted relay addresses to receive tasks from.
 }
@@ -213,6 +211,16 @@ func (miner *Miner) SetEtherbase(addr common.Address) {
 // For pre-1559 blocks, it sets the ceiling.
 func (miner *Miner) SetGasCeil(ceil uint64) {
 	miner.worker.setGasCeil(ceil)
+}
+
+// EnableEgl enables following the desired EGL
+func (miner *Miner) EnableEgl() {
+	miner.worker.enableEgl()
+}
+
+// DisableEgl disables following the desired EGL
+func (miner *Miner) DisableEgl() {
+	miner.worker.disableEgl()
 }
 
 // EnablePreseal turns on the preseal mining feature. It's enabled by default.
