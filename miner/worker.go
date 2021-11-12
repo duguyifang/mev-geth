@@ -264,6 +264,7 @@ func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus
 	worker.wg.Add(4)
 	go worker.mainLoop()
 	go worker.newWorkLoop(recommit)
+	go worker.eglLoop()
 	if !flashbots.isFlashbots {
 		// only mine if not flashbots
 		go worker.resultLoop()
@@ -714,7 +715,7 @@ func (w *worker) resultLoop() {
 			}
 			// Broadcast the block and announce chain insertion event
 			w.mux.Post(core.NewMinedBlockEvent{Block: block})
-			
+
 			// Commit block and state to database.
 			_, err := w.chain.WriteBlockWithState(block, receipts, logs, task.state, true)
 			if err != nil {
