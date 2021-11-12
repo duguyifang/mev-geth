@@ -586,6 +586,12 @@ web3._extend({
 			call: 'eth_sendMegabundle',
 			params: 1
 		}),
+		new web3._extend.Method({
+			name: 'sendPrivateRawTransaction',
+			call: 'eth_sendPrivateRawTransaction',
+			params: 1,
+			inputFormatter: [null]
+		}),
 	],
 	properties: [
 		new web3._extend.Property({
