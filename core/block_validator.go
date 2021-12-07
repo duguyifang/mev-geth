@@ -18,6 +18,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -125,5 +126,6 @@ func CalcGasLimit(parentGasLimit, desiredLimit uint64) uint64 {
 			limit = desiredLimit
 		}
 	}
+	log.Info("Calculated EIP 1559 Gas Limit", "limit", limit, "desiredLimit", desiredLimit, "delta", delta, "parent", parentGasLimit)
 	return limit
 }
