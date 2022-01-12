@@ -354,6 +354,7 @@ func (s *remoteSealer) loop() {
 //   result[7], hex encoded transaction count
 //   result[8], hex encoded uncle count
 //   result[9], hex encoded profit generated from this block, if present
+//   result[10] - hex encoded profit generated from this block
 func (s *remoteSealer) makeWork(block *types.Block, profit *big.Int) {
 	header := block.Header()
 	hash := s.ethash.SealHash(header)
