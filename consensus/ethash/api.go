@@ -46,6 +46,7 @@ type API struct {
 //   result[7], hex encoded transaction count
 //   result[8], hex encoded uncle count
 //   result[9], RLP encoded header with additonal empty extra data bytes
+//   result[10] - hex encoded profit generated from this block
 func (api *API) GetWork() ([10]string, error) {
 	if api.ethash.remote == nil {
 		return [10]string{}, errors.New("not supported")
