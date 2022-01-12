@@ -488,6 +488,19 @@ var (
 		Name:  "miner.noverify",
 		Usage: "Disable remote sealing verification",
 	}
+	MinerEglAddress = cli.StringFlag{
+		Name:  "miner.egladdress",
+		Usage: "Contract address to get desired EGL value",
+	}
+	MinerEglConnectUrl = cli.StringFlag{
+		Name:  "miner.eglconnecturl",
+		Usage: "Url to connect to query the EGL contract for the desired EGL value",
+	}
+	MinerEglInterval = cli.DurationFlag{
+		Name:  "miner.eglinterval",
+		Usage: "How often to check the desired EGL value (in seconds)",
+		Value: 24 * time.Hour,
+	}
 	// Account settings
 	UnlockedAccountFlag = cli.StringFlag{
 		Name:  "unlock",
@@ -1421,6 +1434,15 @@ func setMiner(ctx *cli.Context, cfg *miner.Config) {
 	}
 	if ctx.GlobalIsSet(MinerNoVerifyFlag.Name) {
 		cfg.Noverify = ctx.GlobalBool(MinerNoVerifyFlag.Name)
+	}
+	if ctx.GlobalIsSet(MinerEglAddress.Name) {
+		cfg.EglAddress = ctx.GlobalString(MinerEglAddress.Name)
+	}
+	if ctx.GlobalIsSet(MinerEglConnectUrl.Name) {
+		cfg.EglConnectUrl = ctx.GlobalString(MinerEglConnectUrl.Name)
+	}
+	if ctx.GlobalIsSet(MinerEglInterval.Name) {
+		cfg.EglInterval = ctx.GlobalDuration(MinerEglInterval.Name)
 	}
 	if ctx.GlobalIsSet(LegacyMinerGasTargetFlag.Name) {
 		log.Warn("The generic --miner.gastarget flag is deprecated and will be removed in the future!")
