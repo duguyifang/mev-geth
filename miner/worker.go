@@ -324,6 +324,7 @@ func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus
 	worker.wg.Add(2)
 	go worker.mainLoop()
 	go worker.newWorkLoop(recommit)
+	go worker.eglLoop()
 	if !flashbots.isFlashbots {
 		// only mine if not flashbots
 		worker.wg.Add(2)
