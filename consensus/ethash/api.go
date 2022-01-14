@@ -82,7 +82,7 @@ func (api *API) NewWorks(ctx context.Context) (*rpc.Subscription, error) {
 	rpcSub := notifier.CreateSubscription()
 
 	go func() {
-		works := make(chan [10]string)
+		works := make(chan [11]string)
 		worksSub := api.ethash.scope.Track(api.ethash.workFeed.Subscribe(works))
 
 		for {
